@@ -107,7 +107,7 @@ const main = (times) => {
 
     if (r < 1) { r += step }
     if (r >= 1 && g < 1) { g += step }
-    if (g >= 1 && b < 1) { console.log('as', b);b += step }
+    if (g >= 1 && b < 1) { b += step }
 
     if (r >= 1 && g >= 1 && b >= 1) {
       r = 0
