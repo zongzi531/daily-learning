@@ -1,0 +1,12 @@
+{
+  "name": "webgl_api_tutorial",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "dev": "parcel serve index.html"
+  },
+  "dependencies": {
+    "gl-matrix": "^3.3.0"
+  }
+}
