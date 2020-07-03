@@ -2,7 +2,7 @@
 
 > 环境：MacBook Pro
 
-## 0
+## pa0
 
 0. VSCode C++ 插件安装
 1. 安装 CMake
@@ -33,3 +33,12 @@ int main(){
     return 0;
 }
 ```
+
+## Assignment1
+
+0. `brew install opencv` 会安装最新版本，我装了 `opencv@4`
+1. 安装期间报 cmake 的链接错误，因为我是使用客户端安装的 cmake ，所以删除客户端，执行链接 `brew link cmake` 就好了。同样的我认为 `brew reinstall cmake` 也可以解决
+2. `brew install opencv@2`
+3. 使用 `opencv_version` 查看版本
+4. `brew unlink opencv@4` 执行解除链接
+5. `brew link opencv@2 --force` 链接 `opencv@2`
