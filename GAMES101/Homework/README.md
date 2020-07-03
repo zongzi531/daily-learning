@@ -42,3 +42,51 @@ int main(){
 3. 使用 `opencv_version` 查看版本
 4. `brew unlink opencv@4` 执行解除链接
 5. `brew link opencv@2 --force` 链接 `opencv@2`
+
+```c++
+Eigen::Matrix4f get_model_matrix(float rotation_angle)
+{
+    Eigen::Matrix4f model;
+
+    float angle = rotation_angle / 180.0f * MY_PI;
+
+    model <<  std::cos(angle),-std::sin(angle), 0.0f, 0.0f,
+              std::sin(angle), std::cos(angle), 0.0f, 0.0f,
+              0.0f, 0.0f, 1.0f, 0.0f,
+              0.0f, 0.0f, 0.0f, 1.0f;
+
+    return model;
+}
+
+Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio,
+                                      float zNear, float zFar)
+{
+
+    Eigen::Matrix4f projection = Eigen::Matrix4f::Identity();
+    Eigen::Matrix4f ortho, scale, trans, persp_ortho;
+    float angle = eye_fov / 180.0f * MY_PI / 2; // 计算弧度，需要用于公式，所以除 2
+    float tb = std::tan(angle) * zNear; // 计算宽（半个）
+    float rl = tb * aspect_ratio; // 计算长（半个）
+
+    scale <<  1 / rl, 0.0f, 0.0f, 0.0f, /* 利用公式 2 / (rl * 2) */
+              0.0f, 1 / tb, 0.0f, 0.0f, /* 利用公式 2 / (tb * 2) */
+              0.0f, 0.0f, 2 / (zNear - zFar), 0.0f,
+              0.0f, 0.0f, 0.0f, 1.0f;
+
+    trans <<  1.0f, 0.0f, 0.0f, 0.0f,
+              0.0f, 1.0f, 0.0f, 0.0f,
+              0.0f, 0.0f, 1.0f, -((zNear + zFar) / 2),
+              0.0f, 0.0f, 0.0f, 1.0f;
+
+    ortho = scale * trans;
+
+    persp_ortho <<  zNear, 0.0f, 0.0f, 0.0f,
+                    0.0f, zNear, 0.0f, 0.0f,
+                    0.0f, 0.0f, zNear + zFar, -(zNear * zFar),
+                    0.0f, 0.0f, 1.0f, 0.0f;
+
+    projection = ortho * persp_ortho * projection;
+
+    return projection;
+}
+```
