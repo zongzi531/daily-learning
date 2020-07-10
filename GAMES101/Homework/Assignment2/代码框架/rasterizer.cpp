@@ -40,9 +40,25 @@ auto to_vec4(const Eigen::Vector3f& v3, float w = 1.0f)
 }
 
 
-static bool insideTriangle(int x, int y, const Vector3f* _v)
+static bool insideTriangle(int x, int y, const std::array<Vector4f, 3> _v)
 {   
     // TODO : Implement this function to check if the point (x, y) is inside the triangle represented by _v[0], _v[1], _v[2]
+    Eigen::Vector3i boxpoint = {x, y, 0};
+    Eigen::Vector3i p0 = {_v[0].x(), _v[0].y(), 0};
+    Eigen::Vector3i p1 = {_v[1].x(), _v[1].y(), 0};
+    Eigen::Vector3i p2 = {_v[2].x(), _v[2].y(), 0};
+
+    Eigen::Vector3i bp_p0 = boxpoint - p0;
+    Eigen::Vector3i p1_p0 = p1 - p0;
+
+    Eigen::Vector3i bp_p1 = boxpoint - p1;
+    Eigen::Vector3i p2_p1 = p2 - p1;
+
+    Eigen::Vector3i bp_p2 = boxpoint - p2;
+    Eigen::Vector3i p0_p2 = p0 - p2;
+
+    return (bp_p0.cross(p1_p0).z() > 0 && bp_p1.cross(p2_p1).z() > 0 && bp_p2.cross(p0_p2).z() > 0) ||
+        (bp_p0.cross(p1_p0).z() < 0 && bp_p1.cross(p2_p1).z() < 0 && bp_p2.cross(p0_p2).z() < 0);
 }
 
 static std::tuple<float, float, float> computeBarycentric2D(float x, float y, const Vector3f* v)
@@ -109,11 +125,28 @@ void rst::rasterizer::rasterize_triangle(const Triangle& t) {
     // TODO : Find out the bounding box of current triangle.
     // iterate through the pixel and find if the current pixel is inside the triangle
 
-    // If so, use the following code to get the interpolated z value.
-    //auto[alpha, beta, gamma] = computeBarycentric2D(x, y, t.v);
-    //float w_reciprocal = 1.0/(alpha / v[0].w() + beta / v[1].w() + gamma / v[2].w());
-    //float z_interpolated = alpha * v[0].z() / v[0].w() + beta * v[1].z() / v[1].w() + gamma * v[2].z() / v[2].w();
-    //z_interpolated *= w_reciprocal;
+    int xmax = std::max(std::max(v[0].x(), v[1].x()), v[2].x());
+    int xmin = std::min(std::min(v[0].x(), v[1].x()), v[2].x());
+    int ymax = std::max(std::max(v[0].y(), v[1].y()), v[2].y());
+    int ymin = std::min(std::min(v[0].y(), v[1].y()), v[2].y());
+
+    for (int y = ymax; y > ymin; y--) {
+        for (int x = xmin; x < xmax; x++) {
+            if (insideTriangle(x, y ,v)) {
+                // If so, use the following code to get the interpolated z value.
+                auto[alpha, beta, gamma] = computeBarycentric2D(x, y, t.v);
+                float w_reciprocal = 1.0/(alpha / v[0].w() + beta / v[1].w() + gamma / v[2].w());
+                float z_interpolated = alpha * v[0].z() / v[0].w() + beta * v[1].z() / v[1].w() + gamma * v[2].z() / v[2].w();
+                z_interpolated *= w_reciprocal;
+
+                auto ind = (height-1-y)*width + x;
+                if (z_interpolated < depth_buf[ind]) {
+                    depth_buf[ind] = z_interpolated;
+                    set_pixel({x, y, 0}, t.getColor());
+                }
+            }
+        }
+    }
 
     // TODO : set the current pixel (use the set_pixel function) to the color of the triangle (use getColor function) if it should be painted.
 }

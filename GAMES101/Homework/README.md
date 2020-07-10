@@ -90,3 +90,8 @@ Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio,
     return projection;
 }
 ```
+
+## Assignment2
+
+1. MACOS VSCode 环境未修改情况下编译报错 `error: implicit instantiation of undefined template` 。
+ -  把 Triangle.cpp 里的 `#include <array>` 移到了 Triangle.hpp

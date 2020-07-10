@@ -4,7 +4,6 @@
 
 #include "Triangle.hpp"
 #include <algorithm>
-#include <array>
 
 
 Triangle::Triangle() {
