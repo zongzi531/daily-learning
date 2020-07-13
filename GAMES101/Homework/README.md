@@ -91,6 +91,32 @@ Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio,
 }
 ```
 
+### [提高项 5 分] 在 main.cpp 中构造一个函数，该函数的作用是得到绕任意 过原点的轴的旋转变换矩阵。
+
+```c++
+Eigen::Matrix4f get_rotation(Vector3f axis, float rotation_angle)
+{
+    Eigen::Matrix4f model;
+
+    float angle = rotation_angle / 180.0f * MY_PI;
+
+    model << std::cos(angle) + axis.x() * axis.x() * (1 - std::cos(angle)), axis.x() * axis.y() * (1 - std::cos(angle)) - axis.z() * std::sin(angle), axis.x() * axis.z() * (1 - std::cos(angle)) + axis.y() * std::sin(angle), 0.0f,
+             axis.x() * axis.y() * (1 - std::cos(angle)) + axis.z() * std::sin(angle), std::cos(angle) + axis.y() * axis.y() * (1 - std::cos(angle)), axis.y() * axis.z() * (1 - std::cos(angle)) - axis.x() * std::sin(angle), 0.0f,
+             axis.x() * axis.z() * (1 - std::cos(angle)) - axis.y() * std::sin(angle), axis.z() * axis.y() * (1 - std::cos(angle)) + axis.x() * std::sin(angle), std::cos(angle) + axis.z() * axis.z() * (1 - std::cos(angle)), 0.0f,
+             0.0f, 0.0f, 0.0f, 1.0f;
+
+    return model;
+}
+```
+
+推导公式: M = T(-x, -y, -z) · Rx(-α) · Ry(β) · Rz(θ) · Ry(-β) · Rx(α) · T(x, y, z) 。由于这里是过原点的，所以省略了 T 的两步过程。
+
+[Rotation matrix from axis and angle](https://en.wikipedia.org/wiki/Rotation_matrix#Rotation_matrix_from_axis_and_angle)
+
+![Rotation matrix from axis and angle](https://wikimedia.org/api/rest_v1/media/math/render/svg/f259f80a746ee20d481f9b7f600031084358a27c)
+
+具体相关的推导过程及结果公式，可以 Google 一下（数学真是妙啊😄）。
+
 ## Assignment2
 
 1. MACOS VSCode 环境未修改情况下编译报错 `error: implicit instantiation of undefined template` 。
