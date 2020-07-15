@@ -121,3 +121,77 @@ Eigen::Matrix4f get_rotation(Vector3f axis, float rotation_angle)
 
 1. MACOS VSCode 环境未修改情况下编译报错 `error: implicit instantiation of undefined template` 。
  -  把 Triangle.cpp 里的 `#include <array>` 移到了 Triangle.hpp
+2. **完成提高部分**，实现抗锯齿，使用 2 * 2 采样形式实现，因为之前使用的是 `int` 类型，所以导致一直没有办法实现抗锯齿，详见代码提交记录。
+
+
+```c++
+static bool insideTriangle(float x, float y, const std::array<Vector4f, 3> _v)
+{   
+    // TODO : Implement this function to check if the point (x, y) is inside the triangle represented by _v[0], _v[1], _v[2]
+    Eigen::Vector3f boxpoint = {x, y, 0};
+    Eigen::Vector3f p0 = {_v[0].x(), _v[0].y(), 0};
+    Eigen::Vector3f p1 = {_v[1].x(), _v[1].y(), 0};
+    Eigen::Vector3f p2 = {_v[2].x(), _v[2].y(), 0};
+
+    Eigen::Vector3f bp_p0 = boxpoint - p0;
+    Eigen::Vector3f p1_p0 = p1 - p0;
+
+    Eigen::Vector3f bp_p1 = boxpoint - p1;
+    Eigen::Vector3f p2_p1 = p2 - p1;
+
+    Eigen::Vector3f bp_p2 = boxpoint - p2;
+    Eigen::Vector3f p0_p2 = p0 - p2;
+
+    return (bp_p0.cross(p1_p0).z() > 0 && bp_p1.cross(p2_p1).z() > 0 && bp_p2.cross(p0_p2).z() > 0) ||
+        (bp_p0.cross(p1_p0).z() < 0 && bp_p1.cross(p2_p1).z() < 0 && bp_p2.cross(p0_p2).z() < 0);
+}
+
+void rst::rasterizer::rasterize_triangle(const Triangle& t) {
+    auto v = t.toVector4();
+    
+    // TODO : Find out the bounding box of current triangle.
+    // iterate through the pixel and find if the current pixel is inside the triangle
+
+    int xmax = std::max(std::max(v[0].x(), v[1].x()), v[2].x());
+    int xmin = std::min(std::min(v[0].x(), v[1].x()), v[2].x());
+    int ymax = std::max(std::max(v[0].y(), v[1].y()), v[2].y());
+    int ymin = std::min(std::min(v[0].y(), v[1].y()), v[2].y());
+
+    // 2 * 2 采样
+    float smallbox[4][2] = {
+        { 0.25, 0.25 },
+        { 0.25, 0.75 },
+        { 0.75, 0.25 },
+        { 0.75, 0.75 }
+    };
+
+    for (int y = ymax; y > ymin; y--) {
+        for (int x = xmin; x < xmax; x++) {
+
+            int insmallboxcount = 0;
+            float dep = std::numeric_limits<float>::infinity();
+            for(int i = 0; i < 4; i++) {
+                if (insideTriangle(x + smallbox[i][0], y + smallbox[i][1], v)) {
+                    // If so, use the following code to get the interpolated z value.
+                    auto[alpha, beta, gamma] = computeBarycentric2D(x + smallbox[i][0], y + smallbox[i][1], t.v);
+                    float w_reciprocal = 1.0/(alpha / v[0].w() + beta / v[1].w() + gamma / v[2].w());
+                    float z_interpolated = alpha * v[0].z() / v[0].w() + beta * v[1].z() / v[1].w() + gamma * v[2].z() / v[2].w();
+                    z_interpolated *= w_reciprocal;
+
+                    insmallboxcount++;
+                    dep = std::min(dep, z_interpolated);
+                }
+            }
+            if (insmallboxcount != 0) {
+                auto ind = get_index(x, y);
+                if (dep < depth_buf[ind]) {
+                    depth_buf[ind] = dep;
+                    set_pixel({x, y, dep}, t.getColor() * insmallboxcount / 4.0);
+                }
+            }
+        }
+    }
+
+    // TODO : set the current pixel (use the set_pixel function) to the color of the triangle (use getColor function) if it should be painted.
+}
+```
