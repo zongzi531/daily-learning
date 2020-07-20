@@ -50,7 +50,37 @@ Eigen::Matrix4f get_model_matrix(float angle)
 Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio, float zNear, float zFar)
 {
     // TODO: Use the same projection matrix from the previous assignments
+    Eigen::Matrix4f projection = Eigen::Matrix4f::Identity();
+    Eigen::Matrix4f ortho, scale, trans, persp_ortho, reverse;
+    float angle = eye_fov / 180.0f * MY_PI / 2;
+    float tb = std::tan(angle) * zNear;
+    float rl = tb * aspect_ratio;
 
+    scale <<  1 / rl, 0.0f, 0.0f, 0.0f,
+              0.0f, 1 / tb, 0.0f, 0.0f,
+              0.0f, 0.0f, 2 / (zNear - zFar), 0.0f,
+              0.0f, 0.0f, 0.0f, 1.0f;
+
+    trans <<  1.0f, 0.0f, 0.0f, -((rl + (-rl)) / 2),
+              0.0f, 1.0f, 0.0f, -((tb + (-tb)) / 2),
+              0.0f, 0.0f, 1.0f, -((zNear + zFar) / 2),
+              0.0f, 0.0f, 0.0f, 1.0f;
+
+    ortho = scale * trans;
+
+    persp_ortho <<  zNear, 0.0f, 0.0f, 0.0f,
+                    0.0f, zNear, 0.0f, 0.0f,
+                    0.0f, 0.0f, zNear + zFar, -(zNear * zFar),
+                    0.0f, 0.0f, 1.0f, 0.0f;
+
+    reverse << -1.0f, 0.0f, 0.0f, 0.0f, // 从左手坐标系换成右手坐标系
+                0.0f,-1.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 1.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 1.0f;
+
+    projection = ortho * persp_ortho * projection * reverse;
+
+    return projection;
 }
 
 Eigen::Vector3f vertex_shader(const vertex_shader_payload& payload)
@@ -247,10 +277,10 @@ int main(int argc, const char** argv)
 
     std::string filename = "output.png";
     objl::Loader Loader;
-    std::string obj_path = "../models/spot/";
+    std::string obj_path = "./models/spot/";
 
     // Load .obj File
-    bool loadout = Loader.LoadFile("../models/spot/spot_triangulated_good.obj");
+    bool loadout = Loader.LoadFile("./models/spot/spot_triangulated_good.obj");
     for(auto mesh:Loader.LoadedMeshes)
     {
         for(int i=0;i<mesh.Vertices.size();i+=3)
@@ -271,7 +301,7 @@ int main(int argc, const char** argv)
     auto texture_path = "hmap.jpg";
     r.set_texture(Texture(obj_path + texture_path));
 
-    std::function<Eigen::Vector3f(fragment_shader_payload)> active_shader = phong_fragment_shader;
+    std::function<Eigen::Vector3f(fragment_shader_payload)> active_shader = normal_fragment_shader;
 
     if (argc >= 2)
     {

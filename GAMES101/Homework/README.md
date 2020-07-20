@@ -120,7 +120,7 @@ Eigen::Matrix4f get_rotation(Vector3f axis, float rotation_angle)
 ## Assignment2
 
 1. MACOS VSCode 环境未修改情况下编译报错 `error: implicit instantiation of undefined template` 。
- -  把 Triangle.cpp 里的 `#include <array>` 移到了 Triangle.hpp
+    -  把 Triangle.cpp 里的 `#include <array>` 移到了 Triangle.hpp
 2. **完成提高部分**，实现抗锯齿，使用 2 * 2 采样形式实现，因为之前使用的是 `int` 类型，所以导致一直没有办法实现抗锯齿，详见代码提交记录。
 
 
@@ -197,3 +197,10 @@ void rst::rasterizer::rasterize_triangle(const Triangle& t) {
 ```
 
 ## Assignment3
+
+1. 报错系列
+    - 编译报错：没有 `#include <array>` 类型错误
+    - 运行报错： `OpenCV Error: Assertion failed (scn == 3 || scn == 4) in cvtColor, file...` ，因为 `cv::imread(name);` 时，参数路径错误所致。
+    - 运行时什么内容都没有的情况，是因为加载 `obj` 文件路径错误所致。
+2. 关于三角形的最小包围盒的计算遗漏，在获取三角形点坐标计算最小包围盒的时候，对于浮点数，最小处取舍去小数位，最大处入一位。
+3. 关于 MVP 模型转换后为何产出的内容是“倒”的，需要从左手坐标系换成右手坐标系即可。
