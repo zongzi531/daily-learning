@@ -204,3 +204,8 @@ void rst::rasterizer::rasterize_triangle(const Triangle& t) {
     - 运行时什么内容都没有的情况，是因为加载 `obj` 文件路径错误所致。
 2. 关于三角形的最小包围盒的计算遗漏，在获取三角形点坐标计算最小包围盒的时候，对于浮点数，最小处取舍去小数位，最大处入一位。
 3. 关于 MVP 模型转换后为何产出的内容是“倒”的，需要从左手坐标系换成右手坐标系即可。
+4. 在提交完 normal 作业后，其实已经完成了基本的内容，剩下就是切换着色器而已。
+5. 这里会用到公式 L=La +Ld +Ls=kaIa +kd(I/r2)max(0,n·l)+ks(I/r2)max(0,n·h)p
+6. 关于 phong 还是存在这一些疑问的，比如：
+    - kaIa 为什么不能直接 * 相乘（这里需要用到 Eigen 的 [`cwiseProduct`](https://eigen.tuxfamily.org/dox/group__TutorialArrayClass.html) 方法）
+    - 等等一些关于 phong 公式的代码实现……
