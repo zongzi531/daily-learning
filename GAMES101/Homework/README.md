@@ -564,3 +564,24 @@ Eigen::Vector3f getColorBilinear(float u, float v)
     return Eigen::Vector3f(color[0], color[1], color[2]);
 }
 ```
+
+## Assignment4
+
+1. 利用德卡斯特里奥算法（De Casteljau's algorithm）实现 Bézier 曲线，从A到B的向量是B-A。因为u是在0和1之间的比率，点C位于u(B-A)。将A的位置加以考虑，点C为A+u(B-A)=(1-u)A+uB。因此，对于给定的u，(1-u)A+uB是在A和B之间的点C，将AB分为u:1-u的两段。
+
+```c++
+cv::Point2f recursive_bezier(const std::vector<cv::Point2f> &control_points, float t) 
+{
+    // TODO: Implement de Casteljau's algorithm
+    if (control_points.size() == 2) {
+        return control_points[0] + t * (control_points[1] - control_points[0]);
+    }
+
+    std::vector<cv::Point2f> cp;
+    for (int i = 0; i < control_points.size() - 1; i++) {
+        cp.push_back(control_points[i] + t * (control_points[i + 1] - control_points[i]));
+    }
+
+    return recursive_bezier(cp, t);
+}
+```
