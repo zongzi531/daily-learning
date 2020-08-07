@@ -54,7 +54,39 @@ void bezier(const std::vector<cv::Point2f> &control_points, cv::Mat &window)
     {
         auto point = recursive_bezier(control_points, t);
 
-        window.at<cv::Vec3b>(point.y, point.x)[2] = 255;
+        window.at<cv::Vec3b>(point.y, point.x)[1] = 255;
+
+        float x = point.x - std::floor(point.x);
+        float y = point.y - std::floor(point.y);
+        int x_flag = x < 0.5f ? -1 : 1;
+        int y_flag = y < 0.5f ? -1 : 1;
+
+        // (x, y) 周围4个点（4个点是规整的坐标点 0.5 基准）
+        cv::Point2f p00 = cv::Point2f(std::floor(point.x) + 0.5f, std::floor(point.y) + 0.5f);
+        cv::Point2f p01 = cv::Point2f(std::floor(point.x + x_flag * 1.0f) + 0.5f, std::floor(point.y) + 0.5f);
+        cv::Point2f p10 = cv::Point2f(std::floor(point.x) + 0.5f, std::floor(point.y + y_flag * 1.0f) + 0.5f);
+        cv::Point2f p11 = cv::Point2f(std::floor(point.x + x_flag * 1.0f) + 0.5f, std::floor(point.y + y_flag * 1.0f) + 0.5f);
+
+        // p00为最近点，作为系数使用
+        cv::Point2f distance = p00 - point;
+        float len = std::sqrt(distance.x * distance.x + distance.y * distance.y);
+
+        std::vector<cv::Point2f> vec;
+        vec.push_back(p01);
+        vec.push_back(p10);
+        vec.push_back(p11);
+
+        for(auto p:vec)
+        {
+            cv::Point2f d = p - point;
+            float l = std::sqrt(d.x * d.x + d.y * d.y);
+            // 通过最近点系数计算颜色下降
+            float percent = len / l;
+
+            cv::Vec3d color = window.at<cv::Vec3b>(p.y, p.x);
+            color[1] = std::max(color[1], (double)255 * percent);
+            window.at<cv::Vec3b>(p.y, p.x) = color;
+        }
     }
 }
 
@@ -77,7 +109,7 @@ int main()
         if (control_points.size() == 4) 
         {
             // naive_bezier(control_points, window);
-              bezier(control_points, window);
+            bezier(control_points, window);
 
             cv::imshow("Bezier Curve", window);
             // cv::imwrite("my_bezier_curve.png", window);

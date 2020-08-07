@@ -568,6 +568,7 @@ Eigen::Vector3f getColorBilinear(float u, float v)
 ## Assignment4
 
 1. 利用德卡斯特里奥算法（De Casteljau's algorithm）实现 Bézier 曲线，从A到B的向量是B-A。因为u是在0和1之间的比率，点C位于u(B-A)。将A的位置加以考虑，点C为A+u(B-A)=(1-u)A+uB。因此，对于给定的u，(1-u)A+uB是在A和B之间的点C，将AB分为u:1-u的两段。
+2. 反走样算法，对点进行插值计算，取当前t点周围的4个点，以最近点为系数，计算其余点的比例，来重新着色实现反走样。
 
 ```c++
 cv::Point2f recursive_bezier(const std::vector<cv::Point2f> &control_points, float t) 
@@ -583,5 +584,50 @@ cv::Point2f recursive_bezier(const std::vector<cv::Point2f> &control_points, flo
     }
 
     return recursive_bezier(cp, t);
+}
+
+void bezier(const std::vector<cv::Point2f> &control_points, cv::Mat &window) 
+{
+    // TODO: Iterate through all t = 0 to t = 1 with small steps, and call de Casteljau's 
+    // recursive Bezier algorithm.
+
+    for (double t = 0.0; t <= 1.0; t += 0.001)
+    {
+        auto point = recursive_bezier(control_points, t);
+
+        window.at<cv::Vec3b>(point.y, point.x)[1] = 255;
+
+        float x = point.x - std::floor(point.x);
+        float y = point.y - std::floor(point.y);
+        int x_flag = x < 0.5f ? -1 : 1;
+        int y_flag = y < 0.5f ? -1 : 1;
+
+        // (x, y) 周围4个点（4个点是规整的坐标点 0.5 基准）
+        cv::Point2f p00 = cv::Point2f(std::floor(point.x) + 0.5f, std::floor(point.y) + 0.5f);
+        cv::Point2f p01 = cv::Point2f(std::floor(point.x + x_flag * 1.0f) + 0.5f, std::floor(point.y) + 0.5f);
+        cv::Point2f p10 = cv::Point2f(std::floor(point.x) + 0.5f, std::floor(point.y + y_flag * 1.0f) + 0.5f);
+        cv::Point2f p11 = cv::Point2f(std::floor(point.x + x_flag * 1.0f) + 0.5f, std::floor(point.y + y_flag * 1.0f) + 0.5f);
+
+        // p00为最近点，作为系数使用
+        cv::Point2f distance = p00 - point;
+        float len = std::sqrt(distance.x * distance.x + distance.y * distance.y);
+
+        std::vector<cv::Point2f> vec;
+        vec.push_back(p01);
+        vec.push_back(p10);
+        vec.push_back(p11);
+
+        for(auto p:vec)
+        {
+            cv::Point2f d = p - point;
+            float l = std::sqrt(d.x * d.x + d.y * d.y);
+            // 通过最近点系数计算颜色下降
+            float percent = len / l;
+
+            cv::Vec3d color = window.at<cv::Vec3b>(p.y, p.x);
+            color[1] = std::max(color[1], (double)255 * percent);
+            window.at<cv::Vec3b>(p.y, p.x) = color;
+        }
+    }
 }
 ```
