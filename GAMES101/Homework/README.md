@@ -631,3 +631,44 @@ void bezier(const std::vector<cv::Point2f> &control_points, cv::Mat &window)
     }
 }
 ```
+
+## Assignment5
+
+1. 生成一条对应的光线可以学习文章[Ray-Tracing: Generating Camera Rays](https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-generating-camera-rays/generating-camera-rays)，包含推导公式
+2. 更新 `tnear`, `u`, `v` 参数则是使用 Möller Trumbore Algorithm 算法
+
+```c++
+// In pseudo code we get (check the final C++ implementation):
+float imageAspectRatio = imageWidth / (float)imageHeight; // assuming width > height 
+float Px = (2 * ((x + 0.5) / imageWidth) - 1) * tan(fov / 2 * M_PI / 180) * imageAspectRatio; 
+float Py = (1 - 2 * ((y + 0.5) / imageHeight) * tan(fov / 2 * M_PI / 180); 
+Vec3f rayOrigin(0); 
+Vec3f rayDirection = Vec3f(Px, Py, -1) - rayOrigin; // note that this just equal to Vec3f(Px, Py, -1); 
+rayDirection = normalize(rayDirection); // it's a direction so don't forget to normalize 
+
+bool rayTriangleIntersect(const Vector3f& v0, const Vector3f& v1, const Vector3f& v2, const Vector3f& orig,
+                          const Vector3f& dir, float& tnear, float& u, float& v)
+{
+    // TODO: Implement this function that tests whether the triangle
+    // that's specified bt v0, v1 and v2 intersects with the ray (whose
+    // origin is *orig* and direction is *dir*)
+    // Also don't forget to update tnear, u and v.
+    Vector3f e1 = v1 - v0;
+    Vector3f e2 = v2 - v0;
+    Vector3f s = orig - v0;
+    Vector3f s1 = crossProduct(dir, e2);
+    Vector3f s2 = crossProduct(s, e1);
+    auto k = 1 / dotProduct(s1, e1);
+    float t = dotProduct(s2, e2) * k;
+    float b1 = dotProduct(s1, s) * k;
+    float b2 = dotProduct(s2, dir) * k;
+
+    if (t > 0 && b1 > 0 && b2 > 0 && (1 - b1 - b2) > 0) {
+        tnear = t;
+        u = b1;
+        v = b2;
+        return true;
+    }
+    return false;
+}
+```
