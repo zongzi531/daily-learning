@@ -672,3 +672,57 @@ bool rayTriangleIntersect(const Vector3f& v0, const Vector3f& v1, const Vector3f
     return false;
 }
 ```
+
+## PA6
+
+1. 包围盒求交利用 Ray-Intersection With Box
+2. 使用 BVH 遍历算法
+
+```c++
+inline bool Bounds3::IntersectP(const Ray& ray, const Vector3f& invDir,
+                                const std::array<int, 3>& dirIsNeg) const
+{
+    // invDir: ray direction(x,y,z), invDir=(1.0/x,1.0/y,1.0/z), use this because Multiply is faster that Division
+    // dirIsNeg: ray direction(x,y,z), dirIsNeg=[int(x>0),int(y>0),int(z>0)], use this to simplify your logic
+    // TODO test if ray bound intersects
+    
+    float t_xmax = (pMax.x - ray.origin.x) * invDir.x;
+    float t_xmin = (pMin.x - ray.origin.x) * invDir.x;
+    float t_ymax = (pMax.y - ray.origin.y) * invDir.y;
+    float t_ymin = (pMin.y - ray.origin.y) * invDir.y;
+    float t_zmax = (pMax.z - ray.origin.z) * invDir.z;
+    float t_zmin = (pMin.z - ray.origin.z) * invDir.z;
+
+    if (dirIsNeg[0] <= 0) { float temp = t_xmax; t_xmax = t_xmin; t_xmin = temp; }
+    if (dirIsNeg[1] <= 0) { float temp = t_ymax; t_ymax = t_ymin; t_ymin = temp; }
+    if (dirIsNeg[2] <= 0) { float temp = t_zmax; t_zmax = t_zmin; t_zmin = temp; }
+
+    float t_enter = std::max(t_xmin, std::max(t_ymin, t_zmin));
+    float t_exit = std::min(t_xmax, std::min(t_ymax, t_zmax));
+
+    if (t_enter <= t_exit && t_exit >= 0) { return true; }
+    return false;
+}
+
+Intersection BVHAccel::getIntersection(BVHBuildNode* node, const Ray& ray) const
+{
+    // TODO Traverse the BVH to find intersection
+
+    Vector3f invDir = Vector3f(
+        ray.direction.x == 0.0f ? 0.0f : 1.0f / ray.direction.x,
+        ray.direction.y == 0.0f ? 0.0f : 1.0f / ray.direction.y,
+        ray.direction.z == 0.0f ? 0.0f : 1.0f / ray.direction.z);
+
+    std::array<int, 3> dirIsNeg = {ray.direction.x > 0, ray.direction.y > 0, ray.direction.z > 0};
+
+    if (!node->bounds.IntersectP(ray, invDir, dirIsNeg)) { return {}; }
+
+    if (node->left == nullptr && node->right == nullptr) {
+        return node->object->getIntersection(ray);
+    }
+
+    Intersection h1 = getIntersection(node->left, ray);
+    Intersection h2 = getIntersection(node->right, ray);
+    return h1.distance < h2.distance ? h1 : h2;
+}
+```

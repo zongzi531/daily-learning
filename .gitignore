@@ -5,5 +5,5 @@ WebGL_API_Tutorial/dist/
 WebGL_API_Tutorial/node_modules/
 GAMES101/Homework/**/build/
 GAMES101/Homework/**/.vscode/
-GAMES101/Homework/Assignment3/Code/output.png
-GAMES101/Homework/Assignment5/Code/binary.ppm
+GAMES101/Homework/**/output.png
+GAMES101/Homework/**/binary.ppm
