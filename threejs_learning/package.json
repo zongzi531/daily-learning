@@ -1,0 +1,16 @@
+{
+  "name": "threejs_learning",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "dev": "parcel serve index.html"
+  },
+  "dependencies": {
+    "sass": "^1.26.10",
+    "three": "^0.120.1"
+  },
+  "devDependencies": {
+    "typescript": "^4.0.2"
+  }
+}

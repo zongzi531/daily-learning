@@ -3,6 +3,9 @@
 WebGL_API_Tutorial/.cache/
 WebGL_API_Tutorial/dist/
 WebGL_API_Tutorial/node_modules/
+threejs_learning/.cache/
+threejs_learning/dist/
+threejs_learning/node_modules/
 GAMES101/Homework/**/build/
 GAMES101/Homework/**/.vscode/
 GAMES101/Homework/**/output.png
