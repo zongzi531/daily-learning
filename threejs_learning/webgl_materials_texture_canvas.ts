@@ -36,14 +36,14 @@ const init = () => {
 
 const setupCanvas = () => {
   const canvas = document.createElement('canvas')
-  canvas.width = 128
-  canvas.height = 128
+  canvas.width = 1080
+  canvas.height = 1080
   const context = canvas.getContext('2d') as CanvasRenderingContext2D
   material.map = new CanvasTexture(canvas)
   const img = document.createElement('img')
   img.src = arina_hashimoto1215
   img.onload = () => {
-    context.drawImage(img, 0, 0, 128, 128)
+    context.drawImage(img, 0, 0, 1080, 1080)
     ;(material.map as Texture).needsUpdate = true
     renderer.render(scene, camera)
   }
@@ -58,4 +58,14 @@ const animate = () => {
 
 init()
 setupCanvas()
-animate()
+// animate()
+
+document.addEventListener('mousemove', event => {
+  const centerX = window.innerWidth / 2
+  const centerY = window.innerHeight / 2
+  const moveY = (event.x - centerX) / centerX
+  const moveX = (event.y - centerY) / centerY
+  mesh.rotation.x = moveX
+  mesh.rotation.y = moveY
+  renderer.render(scene, camera)
+})
