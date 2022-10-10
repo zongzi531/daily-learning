@@ -10,3 +10,6 @@ GAMES101/Homework/**/build/
 GAMES101/Homework/**/.vscode/
 GAMES101/Homework/**/output.png
 GAMES101/Homework/**/binary.ppm
+.history/
+WebGL_API_Tutorial/.parcel-cache/
+webgl_api_tutorial_rust/target/
